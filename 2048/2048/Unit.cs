@@ -10,8 +10,23 @@ namespace _2048
 {
     public class Unit
     {
-        public int Number;
+        private int number;
         public Button Btn;
+
+        public delegate void WinnderHandler(object sender, string message);
+        public event WinnderHandler Notify;
+
+        public int Number
+        {
+            get => number; set
+            {
+                if (value == 2048)
+                {
+                    Notify?.Invoke(this, "Вы собрали 2048");
+                }
+                number = value;
+            }
+        }
 
         public Unit(int x, int y, int number)
         {
