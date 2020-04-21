@@ -20,18 +20,13 @@ namespace _2048
         public Form1()
         {
             InitializeComponent();
-            timer1.Start();
-            timer1.Tick += Timer1_Tick;
 
             Units = new Unit[4, 4];
 
-            GenerateBtn();
-            GenerateBtn();
-        }
+            GenerateBorder();
 
-        private void Timer1_Tick(object sender, EventArgs e)
-        {
-            label3.Text = DateTime.Now.Second.ToString();
+            GenerateBtn();
+            GenerateBtn();
         }
 
         private void DisplayMessage(object sender, string message)
@@ -45,10 +40,10 @@ namespace _2048
             }
         }
 
-        private void swapPos(int x, int y, out Unit temp, int j, int i)
+        private void swapPos(int x, int y, out Unit CurrentUnit, int j, int i)
         {
             Units[x, y] = Units[j, i];
-            temp = Units[j, i];
+            CurrentUnit = Units[j, i];
             Units[j, i] = null;
             CanMove = true;
         }
@@ -59,273 +54,232 @@ namespace _2048
             CanMove = true;
         }
 
+        private void _Move(int xFin, int yFin, Button btn)
+        {
+            btn.Location = new Point(xFin, yFin);
+        }
+
+        private void CheckCanGenerateBtn()
+        {
+            if (CanMove)
+            {
+                GenerateBtn();
+                CanMove = false;
+            }
+        }
+
         private void MoveRigth()
         {
-            Unit temp = null;
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 3; j >= 0; j--)
                 {
+                    Unit CurrentUnit = null;
                     if (Units[j, i] != null)
                     {
-                        Units[j, i].Btn.BringToFront();
-                        if (temp == null)
+                        if (CurrentUnit == null)
                         {
-                            temp = Units[j, i];
-                            if (temp.Btn.Location.X < MaxX)
+                            CurrentUnit = Units[j, i];
+                            if (CurrentUnit.Btn.Location.X < MaxX)
                             {
-                                _MoveRight(temp.Btn.Location.X, MaxX, temp.Btn);
-                                swapPos(temp.Btn.Location.X / 100, temp.Btn.Location.Y / 100, j, i);
+                                _Move(MaxX, CurrentUnit.Btn.Location.Y, CurrentUnit.Btn);
+                                swapPos(CurrentUnit.Btn.Location.X / 100, CurrentUnit.Btn.Location.Y / 100, j, i);
                             }
                             continue;
                         }
-                        if (temp.Number == Units[j, i].Number && temp.NewNumber == false)
+                        if (CurrentUnit.Number == Units[j, i].Number && CurrentUnit.NewNumber == false)
                         {
-                            _MoveRight(Units[j, i].Btn.Location.X, temp.Btn.Location.X, Units[j, i].Btn);
+                            _Move(CurrentUnit.Btn.Location.X, Units[j, i].Btn.Location.Y, Units[j, i].Btn);
 
-                            Units[j, i].Number = temp.Number * 2;
+                            Units[j, i].Number = CurrentUnit.Number * 2;
                             Units[j, i].Btn.Text = Units[j, i].Number.ToString();
                             Units[j, i].NewNumber = true;
 
-                            Controls.Remove(temp.Btn);
-                            Units[temp.Btn.Location.X / 100, temp.Btn.Location.Y / 100] = null;
+                            Controls.Remove(CurrentUnit.Btn);
+                            Units[CurrentUnit.Btn.Location.X / 100, CurrentUnit.Btn.Location.Y / 100] = null;
 
-                            swapPos(Units[j, i].Btn.Location.X / 100, Units[j, i].Btn.Location.Y / 100, out temp, j, i);
+                            swapPos(Units[j, i].Btn.Location.X / 100, Units[j, i].Btn.Location.Y / 100, out CurrentUnit, j, i);
                         }
                         else
                         {
                             int start = Units[j, i].Btn.Location.X;
-                            int fin = temp.Btn.Location.X - 100;
+                            int fin = CurrentUnit.Btn.Location.X - 100;
 
                             if (start == fin)
                             {
-                                temp = Units[j, i];
+                                CurrentUnit = Units[j, i];
                                 continue;
                             }
 
-                            _MoveRight(start, fin, Units[j, i].Btn);
-                            swapPos((temp.Btn.Location.X - 100) / 100, temp.Btn.Location.Y / 100, out temp, j, i);
+                            _Move(fin, CurrentUnit.Btn.Location.Y, Units[j, i].Btn);
+                            swapPos((CurrentUnit.Btn.Location.X - 100) / 100, CurrentUnit.Btn.Location.Y / 100, out CurrentUnit, j, i);
                         }
                     }
                 }
-                temp = null;
             }
-            if (CanMove)
-            {
-                GenerateBtn();
-                CanMove = false;
-            }
+            CheckCanGenerateBtn();
         }
-        private void _MoveRight(int start, int finish, Button btn)
-        {
-            for (int x = start; x <= finish; x += 10)
-            {
-                btn.Location = new Point(x, btn.Location.Y);
-            }
-        }
-
         private void MoveDown()
         {
-            Unit temp = null;
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 3; j >= 0; j--)
                 {
+                    Unit CurrentUnit = null;
                     if (Units[i, j] != null)
                     {
-                        Units[i, j].Btn.BringToFront();
-                        if (temp == null)
+                        if (CurrentUnit == null)
                         {
-                            temp = Units[i, j];
-                            if (temp.Btn.Location.Y < MaxY)
+                            CurrentUnit = Units[i, j];
+                            if (CurrentUnit.Btn.Location.Y < MaxY)
                             {
-                                _MoveDown(temp.Btn.Location.Y, MaxY, temp.Btn);
+                                _Move(CurrentUnit.Btn.Location.X, MaxY, CurrentUnit.Btn);
 
-                                swapPos(temp.Btn.Location.X / 100, temp.Btn.Location.Y / 100, i, j);
+                                swapPos(CurrentUnit.Btn.Location.X / 100, CurrentUnit.Btn.Location.Y / 100, i, j);
                             }
                             continue;
                         }
-                        if (temp.Number == Units[i, j].Number && temp.NewNumber == false)
+                        if (CurrentUnit.Number == Units[i, j].Number && CurrentUnit.NewNumber == false)
                         {
-                            _MoveDown(Units[i, j].Btn.Location.Y, temp.Btn.Location.Y, Units[i, j].Btn);
+                            _Move(Units[i, j].Btn.Location.X, CurrentUnit.Btn.Location.Y, Units[i, j].Btn);
 
-                            Units[i, j].Number = temp.Number * 2;
+                            Units[i, j].Number = CurrentUnit.Number * 2;
                             Units[i, j].Btn.Text = Units[i, j].Number.ToString();
                             Units[i, j].NewNumber = true;
 
-                            Controls.Remove(temp.Btn);
-                            Units[temp.Btn.Location.X / 100, temp.Btn.Location.Y / 100] = null;
+                            Controls.Remove(CurrentUnit.Btn);
+                            Units[CurrentUnit.Btn.Location.X / 100, CurrentUnit.Btn.Location.Y / 100] = null;
 
-                            swapPos(Units[i, j].Btn.Location.X / 100, Units[i, j].Btn.Location.Y / 100, out temp, i, j);
+                            swapPos(Units[i, j].Btn.Location.X / 100, Units[i, j].Btn.Location.Y / 100, out CurrentUnit, i, j);
                         }
                         else
                         {
                             int start = Units[i, j].Btn.Location.Y;
-                            int fin = temp.Btn.Location.Y - 100;
+                            int fin = CurrentUnit.Btn.Location.Y - 100;
 
                             if (start == fin)
                             {
-                                temp = Units[i, j];
+                                CurrentUnit = Units[i, j];
                                 continue;
                             }
 
-                            _MoveDown(start, fin, Units[i, j].Btn);
-                            swapPos(temp.Btn.Location.X / 100, (temp.Btn.Location.Y - 100) / 100, out temp, i, j);
+                            _Move(Units[i, j].Btn.Location.X, fin, Units[i, j].Btn);
+                            swapPos(CurrentUnit.Btn.Location.X / 100, (CurrentUnit.Btn.Location.Y - 100) / 100, out CurrentUnit, i, j);
                         }
                     }
                 }
-                temp = null;
             }
-            if (CanMove)
-            {
-                GenerateBtn();
-                CanMove = false;
-            }
+            CheckCanGenerateBtn();
         }
-        private void _MoveDown(int start, int finish, Button btn)
-        {
-            for (int y = start; y <= finish; y += 10)
-            {
-                btn.Location = new Point(btn.Location.X, y);
-            }
-        }
-
         private void MoveLeft()
         {
-            Unit temp = null;
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {
+                    Unit CurrentUnit = null;
                     if (Units[j, i] != null)
                     {
-                        Units[j, i].Btn.BringToFront();
-                        if (temp == null)
+                        if (CurrentUnit == null)
                         {
-                            temp = Units[j, i];
-                            if (temp.Btn.Location.X > 0)
+                            CurrentUnit = Units[j, i];
+                            if (CurrentUnit.Btn.Location.X > 0)
                             {
-                                _MoveLeft(temp.Btn.Location.X, 0, temp.Btn);
-                                swapPos(temp.Btn.Location.X / 100, temp.Btn.Location.Y / 100, j, i);
+                                _Move(0, CurrentUnit.Btn.Location.Y, CurrentUnit.Btn);
+                                swapPos(CurrentUnit.Btn.Location.X / 100, CurrentUnit.Btn.Location.Y / 100, j, i);
                             }
                             continue;
                         }
 
-                        if (temp.Number == Units[j, i].Number && temp.NewNumber == false)
+                        if (CurrentUnit.Number == Units[j, i].Number && CurrentUnit.NewNumber == false)
                         {
-                            _MoveLeft(Units[j, i].Btn.Location.X, temp.Btn.Location.X, Units[j, i].Btn);
+                            _Move(CurrentUnit.Btn.Location.X, Units[j, i].Btn.Location.Y, Units[j, i].Btn);
 
-                            Units[j, i].Number = temp.Number * 2;
+                            Units[j, i].Number = CurrentUnit.Number * 2;
                             Units[j, i].Btn.Text = Units[j, i].Number.ToString();
                             Units[j, i].NewNumber = true;
 
-                            Controls.Remove(temp.Btn);
-                            Units[temp.Btn.Location.X / 100, temp.Btn.Location.Y / 100] = null;
+                            Controls.Remove(CurrentUnit.Btn);
+                            Units[CurrentUnit.Btn.Location.X / 100, CurrentUnit.Btn.Location.Y / 100] = null;
 
-                            swapPos(Units[j, i].Btn.Location.X / 100, Units[j, i].Btn.Location.Y / 100, out temp, j, i);
+                            swapPos(Units[j, i].Btn.Location.X / 100, Units[j, i].Btn.Location.Y / 100, out CurrentUnit, j, i);
                         }
                         else
                         {
                             int start = Units[j, i].Btn.Location.X;
-                            int fin = temp.Btn.Location.X + 100;
+                            int fin = CurrentUnit.Btn.Location.X + 100;
 
                             if (start == fin)
                             {
-                                temp = Units[j, i];
+                                CurrentUnit = Units[j, i];
                                 continue;
                             }
 
-                            _MoveLeft(start, fin, Units[j, i].Btn);
-                            swapPos(fin / 100, temp.Btn.Location.Y / 100, out temp, j, i);
+                            _Move(fin, Units[j, i].Btn.Location.Y, Units[j, i].Btn);
+                            swapPos(fin / 100, CurrentUnit.Btn.Location.Y / 100, out CurrentUnit, j, i);
                         }
                     }
                 }
-                temp = null;
             }
-            if (CanMove)
-            {
-                GenerateBtn();
-                CanMove = false;
-            }
+            CheckCanGenerateBtn();
         }
-        private void _MoveLeft(int start, int finish, Button btn)
-        {
-            for (int x = start; x >= finish; x -= 10)
-            {
-                btn.Location = new Point(x, btn.Location.Y);
-            }
-        }
-
         private void MoveUp()
         {
-            Unit temp = null;
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {
+                    Unit CurrentUnit = null;
                     if (Units[i, j] != null)
                     {
-                        Units[i, j].Btn.BringToFront();
-                        if (temp == null)
+                        if (CurrentUnit == null)
                         {
-                            temp = Units[i, j];
-                            if (temp.Btn.Location.Y > 0)
+                            CurrentUnit = Units[i, j];
+                            if (CurrentUnit.Btn.Location.Y > 0)
                             {
-                                _MoveUp(temp.Btn.Location.Y, 0, temp.Btn);
-                                swapPos(temp.Btn.Location.X / 100, temp.Btn.Location.Y / 100, i, j);
+                                _Move(CurrentUnit.Btn.Location.X, 0, CurrentUnit.Btn);
+                                swapPos(CurrentUnit.Btn.Location.X / 100, CurrentUnit.Btn.Location.Y / 100, i, j);
                             }
                             continue;
                         }
-                        if (temp.Number == Units[i, j].Number && temp.NewNumber == false)
+                        if (CurrentUnit.Number == Units[i, j].Number && CurrentUnit.NewNumber == false)
                         {
-                            _MoveUp(Units[i, j].Btn.Location.Y, temp.Btn.Location.Y, Units[i, j].Btn);
+                            _Move(Units[i, j].Btn.Location.X, CurrentUnit.Btn.Location.Y, Units[i, j].Btn);
 
-                            Units[i, j].Number = temp.Number * 2;
+                            Units[i, j].Number = CurrentUnit.Number * 2;
                             Units[i, j].Btn.Text = Units[i, j].Number.ToString();
                             Units[i, j].NewNumber = true;
 
-                            Controls.Remove(temp.Btn);
-                            Units[temp.Btn.Location.X / 100, temp.Btn.Location.Y / 100] = null;
-                            //temp = Units[j, i];
+                            Controls.Remove(CurrentUnit.Btn);
+                            Units[CurrentUnit.Btn.Location.X / 100, CurrentUnit.Btn.Location.Y / 100] = null;
+                            //CurrentUnit = Units[j, i];
 
-                            swapPos(Units[i, j].Btn.Location.X / 100, Units[i, j].Btn.Location.Y / 100, out temp, i, j);
+                            swapPos(Units[i, j].Btn.Location.X / 100, Units[i, j].Btn.Location.Y / 100, out CurrentUnit, i, j);
                             //Units[Units[j, i].Btn.Location.X / 100, Units[j, i].Btn.Location.Y / 100] = Units[j, i];
-                            //temp = Units[j, i];
+                            //CurrentUnit = Units[j, i];
                             //Units[j, i] = null;
                         }
                         else
                         {
                             int start = Units[i, j].Btn.Location.Y;
-                            int fin = temp.Btn.Location.Y + 100;
+                            int fin = CurrentUnit.Btn.Location.Y + 100;
 
                             if (start == fin)
                             {
-                                temp = Units[i, j];
+                                CurrentUnit = Units[i, j];
                                 continue;
                             }
 
-                            _MoveUp(start, fin, Units[i, j].Btn);
-                            swapPos(temp.Btn.Location.X / 100, (temp.Btn.Location.Y + 100) / 100, out temp, i, j);
-                            //Units[(temp.Btn.Location.X - 100) / 100, temp.Btn.Location.Y / 100] = Units[j, i];
-                            //temp = Units[j, i];
+                            _Move(Units[i, j].Btn.Location.X, fin, Units[i, j].Btn);
+                            swapPos(CurrentUnit.Btn.Location.X / 100, (CurrentUnit.Btn.Location.Y + 100) / 100, out CurrentUnit, i, j);
+                            //Units[(CurrentUnit.Btn.Location.X - 100) / 100, CurrentUnit.Btn.Location.Y / 100] = Units[j, i];
+                            //CurrentUnit = Units[j, i];
                             //Units[j, i] = null;
                         }
                     }
                 }
-                temp = null;
             }
-            if (CanMove)
-            {
-                GenerateBtn();
-                CanMove = false;
-            }
-        }
-        private void _MoveUp(int start, int finish, Button btn)
-        {
-            for (int y = start; y >= finish; y -= 10)
-            {
-                btn.Location = new Point(btn.Location.X, y);
-            }
+            CheckCanGenerateBtn();
         }
 
         private void GenerateBtn()
@@ -346,6 +300,17 @@ namespace _2048
             Units[x, y].Notify += DisplayMessage;
 
             Controls.Add(Units[x, y].Btn);
+        }
+        private void GenerateBorder()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                PictureBox pb = new PictureBox();
+                pb.Location = new Point(0, 0 + (i * 100));
+                pb.Size = new Size(1, 400);
+                pb.BackColor = Color.Black;
+                Controls.Add(pb);
+            }
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
